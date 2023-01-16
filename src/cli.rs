@@ -1,6 +1,7 @@
 use clap::Parser;
 use clap::Subcommand;
 
+use crate::commands::init;
 use crate::commands::test_command;
 
 #[derive(Debug, Subcommand)]
@@ -55,7 +56,17 @@ impl Cli {
 
         match args.command {
             Commands::Init => {
-                test_command("initialised todo project");
+                let res = init();
+                match res {
+                    Err(e) => {
+                        eprintln!("Unable to initialise todo-cli project");
+                        eprintln!("{}", e);
+                        std::process::exit(exitcode::CANTCREAT);
+                    }
+                    Ok(_) => {
+                        println!("todo-cli project created!");
+                    }
+                }
             }
             Commands::List => {
                 test_command("listed todos");
