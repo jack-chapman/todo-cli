@@ -1,8 +1,8 @@
 use clap::Parser;
 use clap::Subcommand;
 
-use crate::commands::init;
-use crate::commands::test_command;
+use crate::todo::Todo;
+use crate::todo::TodoList;
 
 #[derive(Debug, Subcommand)]
 pub enum Commands {
@@ -56,7 +56,8 @@ impl Cli {
 
         match args.command {
             Commands::Init => {
-                let res = init();
+                let todo_list = TodoList::new();
+                let res = todo_list.to_new_file();
                 match res {
                     Err(e) => {
                         eprintln!("Unable to initialise todo-cli project");
@@ -69,29 +70,40 @@ impl Cli {
                 }
             }
             Commands::List => {
-                test_command("listed todos");
+                if let Ok(todo_list) = TodoList::from_file("todo_list.json") {
+                    for (i, todo) in todo_list.todos.iter().enumerate() {
+                        let complete = if todo.complete { "x" } else { " " };
+                        println!("{} [{}]: {}", i, complete, todo.description);
+                    }
+                }
             }
             Commands::Add { text } => {
-                let output = format!("Added {text} todo");
-                test_command(&output);
+                let todo = Todo::new(text, None);
+                if let Ok(mut todo_list) = TodoList::from_file("todo_list.json") {
+                    todo_list.add(todo);
+                    match todo_list.to_file() {
+                        Ok(_) => println!("added new item!"),
+                        Err(e) => eprintln!("{}", e),
+                    }
+                }
             }
             Commands::Delete { todo_id } => {
                 let output = format!("Deleted {todo_id} todo");
-                test_command(&output);
+                todo!("{output}")
             }
             Commands::Complete { todo_id } => {
                 let output = format!("Completed {todo_id} todo");
-                test_command(&output);
+                todo!("{output}")
             }
             Commands::Uncomplete { todo_id } => {
                 let output = format!("Uncompleted {todo_id} todo");
-                test_command(&output);
+                todo!("{output}")
             }
             Commands::Clear => {
-                test_command("Cleared all todos");
+                todo!("Cleared all todos")
             }
             Commands::Clean => {
-                test_command("Cleaned up todo list");
+                todo!("Cleaned completed todods")
             }
         }
     }
