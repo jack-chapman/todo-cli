@@ -52,15 +52,15 @@ impl TodoList {
             if let Ok(todo) = serde_json::from_str::<Self>(buffer.as_str()) {
                 Ok(todo)
             } else {
-                return Err(String::from("cannot load todo file"));
+                Err(String::from("cannot load todo file"))
             }
         } else {
-            return Err(String::from("cannot open todo file"));
+            Err(String::from("cannot open todo file"))
         }
     }
 
-    pub fn to_new_file(self) -> Result<(), Error> {
-        let serialized = serde_json::to_string(&self)?;
+    pub fn to_new_file(&self) -> Result<(), Error> {
+        let serialized = serde_json::to_string(self)?;
 
         let path = Path::new("todo_list.json");
 
@@ -78,8 +78,8 @@ impl TodoList {
         Ok(())
     }
 
-    pub fn to_file(self) -> Result<(), Error> {
-        let serialized = serde_json::to_string(&self)?;
+    pub fn to_file(&self) -> Result<(), Error> {
+        let serialized = serde_json::to_string(self)?;
 
         let path = Path::new("todo_list.json");
 
