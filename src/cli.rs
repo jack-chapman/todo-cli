@@ -71,7 +71,7 @@ impl Cli {
             }
             Commands::List => {
                 if let Ok(todo_list) = TodoList::from_file("todo_list.json") {
-                    for (i, todo) in todo_list.todos.iter().enumerate() {
+                    for (i, todo) in todo_list.todos.iter() {
                         let complete = if todo.complete { "x" } else { " " };
                         println!("{} [{}]: {}", i, complete, todo.description);
                     }

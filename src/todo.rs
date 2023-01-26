@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     fs::File,
     io::{Error, Read, Write},
     path::Path,
@@ -29,12 +30,16 @@ impl Todo {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TodoList {
-    pub todos: Vec<Todo>,
+    pub todos: HashMap<usize, Todo>,
+    current_index: usize,
 }
 
 impl TodoList {
     pub fn new() -> Self {
-        Self { todos: Vec::new() }
+        Self {
+            todos: HashMap::new(),
+            current_index: 0,
+        }
     }
     pub fn from_file(path: &str) -> Result<Self, String> {
         let path = Path::new(path);
@@ -90,7 +95,13 @@ impl TodoList {
         Ok(())
     }
 
-    pub fn add(&mut self, todo: Todo) {
-        self.todos.push(todo)
+    fn next_index(&mut self) -> usize {
+        self.current_index += 1;
+        self.current_index
+    }
+
+    pub fn add(&mut self, todo: Todo) -> Option<Todo> {
+        let index = self.next_index();
+        self.todos.insert(index, todo)
     }
 }
