@@ -22,19 +22,19 @@ pub enum Commands {
     #[command(alias = "d")]
     Delete {
         /// the todo to delete
-        todo_id: u8,
+        todo_id: usize,
     },
     /// Mark a todo as completed
     #[command(alias = "c")]
     Complete {
         /// the todo to mark as completed
-        todo_id: u8,
+        todo_id: usize,
     },
     /// Mark a todo as uncompleted
     #[command(alias = "u")]
     Uncomplete {
         /// the todo to mark as uncompleted
-        todo_id: u8,
+        todo_id: usize,
     },
     /// Clear all todos in the project
     Clear,
@@ -61,7 +61,7 @@ impl Cli {
                 match res {
                     Err(e) => {
                         eprintln!("Unable to initialise todo-cli project");
-                        eprintln!("{}", e);
+                        eprintln!("{e}");
                         std::process::exit(exitcode::CANTCREAT);
                     }
                     Ok(_) => {
@@ -69,28 +69,45 @@ impl Cli {
                     }
                 }
             }
-            Commands::List => {
-                if let Ok(todo_list) = TodoList::from_file("todo_list.json") {
+            Commands::List => match TodoList::from_file("todo_list.json") {
+                Ok(todo_list) => {
+                    if todo_list.todos.is_empty() {
+                        println!("No items in todo list");
+                        println!("Use `add` command to add some!");
+                    }
                     for (i, todo) in todo_list.todos.iter() {
                         let complete = if todo.complete { "x" } else { " " };
                         println!("{} [{}]: {}", i, complete, todo.description);
                     }
                 }
-            }
+                Err(e) => eprintln!("{e}"),
+            },
             Commands::Add { text } => {
                 let todo = Todo::new(text, None);
-                if let Ok(mut todo_list) = TodoList::from_file("todo_list.json") {
-                    todo_list.add(todo);
-                    match todo_list.to_file() {
-                        Ok(_) => println!("added new item!"),
-                        Err(e) => eprintln!("{}", e),
+                match TodoList::from_file("todo_list.json") {
+                    Ok(mut todo_list) => {
+                        todo_list.add(todo);
+                        match todo_list.to_file() {
+                            Ok(_) => println!("added new item!"),
+                            Err(e) => eprintln!("{e}"),
+                        }
                     }
+                    Err(e) => eprintln!("{e}"),
                 }
             }
-            Commands::Delete { todo_id } => {
-                let output = format!("Deleted {todo_id} todo");
-                todo!("{output}")
-            }
+            Commands::Delete { todo_id } => match TodoList::from_file("todo_list.json") {
+                Ok(mut todo_list) => match todo_list.todos.remove(&todo_id) {
+                    Some(_) => {
+                        if let Err(e) = todo_list.to_file() {
+                            eprintln!("{e}");
+                        } else {
+                            println!("deleted todo with id [{todo_id}]");
+                        }
+                    }
+                    None => eprintln!("No todo with id [{todo_id}] found"),
+                },
+                Err(e) => eprintln!("{e}"),
+            },
             Commands::Complete { todo_id } => {
                 let output = format!("Completed {todo_id} todo");
                 todo!("{output}")

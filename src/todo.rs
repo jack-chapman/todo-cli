@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::BTreeMap,
     fs::File,
     io::{Error, Read, Write},
     path::Path,
@@ -30,14 +30,14 @@ impl Todo {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TodoList {
-    pub todos: HashMap<usize, Todo>,
+    pub todos: BTreeMap<usize, Todo>,
     current_index: usize,
 }
 
 impl TodoList {
     pub fn new() -> Self {
         Self {
-            todos: HashMap::new(),
+            todos: BTreeMap::new(),
             current_index: 0,
         }
     }
