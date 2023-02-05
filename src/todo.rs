@@ -104,4 +104,61 @@ impl TodoList {
         let index = self.next_index();
         self.todos.insert(index, todo)
     }
+
+    pub fn get_todo(&self, id: &usize) -> Option<&Todo> {
+        self.todos.get(id)
+    }
+
+    pub fn get_mut_todo(&mut self, id: &usize) -> Option<&mut Todo> {
+        self.todos.get_mut(id)
+    }
+
+    pub fn change_todo_status(&mut self, id: &usize, status: bool) -> Result<(), String> {
+        match self.get_mut_todo(id) {
+            Some(mut todo) => {
+                todo.complete = status;
+                if let Err(e) = self.to_file() {
+                    return Err(format!("{e}"));
+                }
+                Ok(())
+            }
+            None => Err(String::from("no todo found")),
+        }
+    }
+
+    pub fn add_todo(&mut self, text: String) -> Result<(), String> {
+        let new_todo = Todo::new(text, None);
+        match self.add(new_todo) {
+            Some(_) => {
+                if let Err(e) = self.to_file() {
+                    return Err(format!("{e}"));
+                }
+                Ok(())
+            }
+            None => Err(String::from("cannot add todo")),
+        }
+    }
+
+    pub fn remove_todo(&mut self, id: &usize) -> Result<(), String> {
+        match self.todos.remove(id) {
+            Some(_) => {
+                if let Err(e) = self.to_file() {
+                    return Err(format!("{e}"));
+                }
+                Ok(())
+            }
+            None => Err(String::from("no todo found")),
+        }
+    }
+
+    pub fn list(&self) {
+        if self.todos.is_empty() {
+            println!("No items in todo list");
+            println!("Use `add` command to add some!");
+        }
+        for (i, todo) in self.todos.iter() {
+            let complete = if todo.complete { "x" } else { " " };
+            println!("{} [{}]: {}", i, complete, todo.description);
+        }
+    }
 }
